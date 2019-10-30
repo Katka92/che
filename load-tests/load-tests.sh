@@ -183,9 +183,9 @@ echo "Syncing files from PVC to local folder."
 mkdir $FOLDER/$TIMESTAMP
 cd $FOLDER/$TIMESTAMP
 oc rsync --no-perms --include "user*/" ftp-server:/home/vsftpd/user/ $FOLDER/$TIMESTAMP
-echo "Zip files rsynced, unzipping..."
-unzip -q '*.zip'
-rm *.zip
+echo "Tar files rsynced, untarring..."
+tar xf *.tar
+rm *.tar
 cd ..
 
 # gather logs from pods
