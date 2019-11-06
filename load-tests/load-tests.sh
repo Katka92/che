@@ -184,7 +184,9 @@ mkdir $FOLDER/$TIMESTAMP
 cd $FOLDER/$TIMESTAMP
 oc rsync --no-perms --include "user*/" ftp-server:/home/vsftpd/user/ $FOLDER/$TIMESTAMP
 echo "Tar files rsynced, untarring..."
-tar xf *.tar
+for filename in *.tar; do 
+  tar xf $filename; 
+done
 rm *.tar
 cd ..
 
