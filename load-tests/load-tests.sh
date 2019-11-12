@@ -18,24 +18,35 @@ function printHelp {
   echo -e "-p    password"
   echo -e "-n    number of users ${NC} usernames will be set in format <username>1, <username>2, ..."${WHITE}
   echo -e "-m    number of users per pod"
+  echo -e "-i    image with test"
   echo -e "-r    URL of Che"
   echo -e "-f    full path to folder ${NC} all reports will be saved in this folder"
 }
 
-while getopts "hu:p:r:n:f:" opt; do 
+oc whoami 1>/dev/null
+if [ $? -gt 0 ] ; then
+  echo "ERROR: You are not logged! Please login to oc before running this script again."
+  exit 1
+fi
+
+echo "You are logged in OC: $(oc whoami -c)"
+
+while getopts "hu:p:r:n:f:i:" opt; do 
   case $opt in
     h) printHelp
       exit 0
       ;;
-    u) export USERNAME=$OPTARG
+    f) export FOLDER=$OPTARG
+      ;;
+    i) export TEST_IMAGE=$OPTARG
+      ;;
+    n) export USER_COUNT=$OPTARG
       ;;
     p) export PASSWORD=$OPTARG
       ;;
     r) export URL=$OPTARG
       ;;
-    n) export USER_COUNT=$OPTARG
-      ;;
-    f) export FOLDER=$OPTARG
+    u) export USERNAME=$OPTARG
       ;;
     \?)
       echo "\"$opt\" is an invalid option!"
@@ -116,10 +127,12 @@ fi
 # set and create pods
 cp pod.yaml template.yaml
 parsed_url=$(echo $URL | sed 's/\//\\\//g')
+parsed_image=$(echo $TEST_IMAGE | sed 's/\//\\\//g')
 
 sed -i "s/REPLACE_URL/\"$parsed_url\"/g" template.yaml
 sed -i "s/REPLACE_PASSWORD/$PASSWORD/g" template.yaml
 sed -i "s/REPLACE_TIMESTAMP/\"$TIMESTAMP\"/g" template.yaml
+sed -i "s/REPLACE_IMAGE/\"$parsed_image\"/g" template.yaml
 
 users_assigned=0
 while [ $users_assigned -lt $USER_COUNT ] 

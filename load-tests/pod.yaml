@@ -27,12 +27,14 @@ spec:
         - name: TS_SELENIUM_MULTIUSER
           value: "true"
         - name: TS_SELENIUM_LOAD_PAGE_TIMEOUT
-          value: "600000"
+          value: "300000"
         - name: TS_SELENIUM_START_WORKSPACE_TIMEOUT
-          value: "600000"
+          value: "300000"
         - name: TS_SELENIUM_DEFAULT_TIMEOUT
-          value: "600000"
-        image: kkanova/load-tests-kkanova-testing 
+          value: "300000"
+        - name: TESTED_ENVIRONMENT
+          value: 'CRW'
+        image: REPLACE_IMAGE 
         imagePullPolicy: Always
         name: load-testing-container
         resources:
