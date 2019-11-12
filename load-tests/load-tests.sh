@@ -70,7 +70,7 @@ function exists {
 }
 
 # check that all parameters are set
-if [ -z $USERNAME ] || [ -z $PASSWORD ] || [ -z $URL ] || [ -z $USER_COUNT ] || [ -z $FOLDER ]; then
+if [ -z $USERNAME ] || [ -z $PASSWORD ] || [ -z $URL ] || [ -z $USER_COUNT ] || [ -z $FOLDER ] || [ -z $TEST_IMAGE ]; then
   echo "Some parameters are not set! Exitting load tests." 
   printHelp
   exit 1
@@ -95,12 +95,14 @@ else
   oc create -f ftp-server.yaml
 fi
 
+# create service
 if ( exists service load-tests-ftp-service ); then
   echo "Service load-tests-ftp-service already exists. Skipping creation."
 else
   oc create -f ftp-service.yaml
 fi
 
+# wait for ftp-server to be running
 if [[ $clean_pvc == true ]]; then
   while [ true ] 
   do
@@ -119,12 +121,12 @@ echo "-- Running pods with tests."
 echo "Searching for already created jobs..."
 jobs=$(oc get jobs -l group=load-tests)
 if [[ ! -z $jobs ]]; then
-  echo "[WARNING] There are some jobs already running. Removing all jobs with label \"load-tests\" and creating new one."
+  echo "[WARNING] There are some jobs already running. Removing all jobs with label \"load-tests\" and creating new ones."
   oc delete jobs -l group=load-tests
   oc delete pods -l group=load-tests
 fi
 
-# set and create pods
+# set common variables
 cp pod.yaml template.yaml
 parsed_url=$(echo $URL | sed 's/\//\\\//g')
 parsed_image=$(echo $TEST_IMAGE | sed 's/\//\\\//g')
@@ -134,6 +136,7 @@ sed -i "s/REPLACE_PASSWORD/$PASSWORD/g" template.yaml
 sed -i "s/REPLACE_TIMESTAMP/\"$TIMESTAMP\"/g" template.yaml
 sed -i "s/REPLACE_IMAGE/\"$parsed_image\"/g" template.yaml
 
+# set specific variables and create pods
 users_assigned=0
 while [ $users_assigned -lt $USER_COUNT ] 
 do
@@ -145,6 +148,8 @@ do
 done
 
 # wait for all pods to be Completed
+# known bug - if workspaces are not all in state running, test will never end. 
+# It can happend e.g. when there are low resources, so only test pods will be executed in serial maneur.
 echo "-- Waiting for all pods to be completed."
 someNotRunning=true
 while [ $someNotRunning == true ]

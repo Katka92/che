@@ -27,20 +27,20 @@ spec:
         - name: TS_SELENIUM_MULTIUSER
           value: "true"
         - name: TS_SELENIUM_LOAD_PAGE_TIMEOUT
-          value: "300000"
+          value: "600000"
         - name: TS_SELENIUM_START_WORKSPACE_TIMEOUT
-          value: "300000"
+          value: "600000"
         - name: TS_SELENIUM_DEFAULT_TIMEOUT
-          value: "300000"
+          value: "600000"
         - name: TESTED_ENVIRONMENT
           value: 'CRW'
         image: REPLACE_IMAGE 
         imagePullPolicy: Always
         name: load-testing-container
         resources:
-          requests:
-            memory: "200Mi"
-            cpu: "250m"
+          #requests:
+          #  memory: "200Mi"
+          #  cpu: "250m"
           limits:
             memory: "750Mi"
             cpu: "450m"
