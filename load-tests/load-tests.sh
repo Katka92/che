@@ -20,7 +20,8 @@ function printHelp {
   echo -e "-m    number of users per pod"
   echo -e "-i    image with test"
   echo -e "-r    URL of Che"
-  echo -e "-f    full path to folder ${NC} all reports will be saved in this folder"
+  echo -e "-f    full path to folder ${NC} all reports will be saved in this folder"${WHITE}
+  echo -e "-c    credential file ${NC} with usernames and passwords in *.csv format: \`user,pass\`"
 }
 
 oc whoami 1>/dev/null
@@ -31,10 +32,12 @@ fi
 
 echo "You are logged in OC: $(oc whoami -c)"
 
-while getopts "hu:p:r:n:f:i:" opt; do 
+while getopts "hu:p:r:n:f:i:c:" opt; do 
   case $opt in
     h) printHelp
       exit 0
+      ;;
+    c) export CRED_FILE=$OPTARG
       ;;
     f) export FOLDER=$OPTARG
       ;;
@@ -48,8 +51,7 @@ while getopts "hu:p:r:n:f:i:" opt; do
       ;;
     u) export USERNAME=$OPTARG
       ;;
-    \?)
-      echo "\"$opt\" is an invalid option!"
+    \?) # invalid option
       exit 1
       ;;
     :)
@@ -70,7 +72,15 @@ function exists {
 }
 
 # check that all parameters are set
-if [ -z $USERNAME ] || [ -z $PASSWORD ] || [ -z $URL ] || [ -z $USER_COUNT ] || [ -z $FOLDER ] || [ -z $TEST_IMAGE ]; then
+if [ -z $CRED_FILE ]; then
+  if [ -z $USERNAME ] || [ -z $PASSWORD ] || [ -z $USER_COUNT ]; then
+    echo "ERROR: No credentials given! You need to set username, password and user count or set credentials file."
+    printHelp
+    exit 1
+  fi
+fi
+
+if [ -z $URL ] || [ -z $FOLDER ] || [ -z $TEST_IMAGE ]; then
   echo "Some parameters are not set! Exitting load tests." 
   printHelp
   exit 1
@@ -100,6 +110,11 @@ if ( exists service load-tests-ftp-service ); then
   echo "Service load-tests-ftp-service already exists. Skipping creation."
 else
   oc create -f ftp-service.yaml
+fi
+
+# load users if credential file was provided
+if [ ! -z $CRED_FILE ]; then
+  cred_file_size=$(wc -l $CRED_FILE)
 fi
 
 # wait for ftp-server to be running
@@ -137,19 +152,36 @@ fi
 
 # set variables specific for each pod and create pods
 users_assigned=0
-while [ $users_assigned -lt $USER_COUNT ] 
-do
-  users_assigned=$((users_assigned+1))
-  cp template.yaml final.yaml
-  sed -i "s/REPLACE_NAME/load-test-$users_assigned/g" final.yaml
-  sed -i "s/REPLACE_USERNAME/$USERNAME$users_assigned/g" final.yaml
-  oc create -f final.yaml
-done
+if [ ! -z $USER_COUNT ]; then
+  while [ $users_assigned -lt $USER_COUNT ] 
+  do
+    users_assigned=$((users_assigned+1))
+    cp template.yaml final.yaml
+    sed -i "s/REPLACE_NAME/load-test-$users_assigned/g" final.yaml
+    sed -i "s/REPLACE_USERNAME/$USERNAME$users_assigned/g" final.yaml
+    oc create -f final.yaml
+  done
+fi
+if [ ! -z $CRED_FILE ]; then
+  oldifs=$IFS
+  while IFS=, read -r cred_file_username cred_file_pass
+  do
+    users_assigned=$((users_assigned+1))
+    echo "I got:$cred_file_username|$cred_file_pass"
+    cp template.yaml final.yaml
+    sed -i "s/REPLACE_NAME/load-test-$users_assigned/g" final.yaml
+    sed -i "s/REPLACE_USERNAME/$cred_file_username/g" final.yaml
+    sed -i "s/REPLACE_PASSWORD/$cred_file_pass/g" template.yaml
+    oc create -f final.yaml
+  done < $CRED_FILE
+  IFS=$oldifs
+fi
 
 echo "-- Waiting for all pods to be completed."
 
 #Initializing array to be sure every pod was executed. Can not use `all pods running` approach because of possible serialization.
-for (( i=0; i<$USER_COUNT; i++ )) do
+echo "$users_assigned users founds."
+for (( i=0; i<$users_assigned; i++ )) do
         running_pods[$i]=false
 done
 
@@ -167,7 +199,7 @@ do
     fi
     i=$(( i+1 ))
   done
-  for (( j=0; j<$USER_COUNT; j++ )) do
+  for (( j=0; j<$users_assigned; j++ )) do
     if [ ${running_pods[$j]} == false ]; then
       echo "Some pods are not in state running. Waiting for 10 seconds and retrying."
       sleep 10
@@ -208,7 +240,7 @@ echo "-- Gathering logs."
 echo "Syncing files from PVC to local folder."
 mkdir $FOLDER/$TIMESTAMP
 cd $FOLDER/$TIMESTAMP
-oc rsync --no-perms --include "user*/" ftp-server:/home/vsftpd/user/ $FOLDER/$TIMESTAMP
+oc rsync --no-perms --include "*.tar" ftp-server:/home/vsftpd/user/ $FOLDER/$TIMESTAMP
 echo "Tar files rsynced, untarring..."
 for filename in *.tar; do 
   tar xf $filename; 
