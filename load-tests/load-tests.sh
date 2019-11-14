@@ -114,8 +114,17 @@ if [[ $clean_pvc == true ]]; then
   done
 fi
 
-# ----------- RUNNING TEST ----------- #
+# set common variables to template.yaml
+cp pod.yaml template.yaml
+parsed_url=$(echo $URL | sed 's/\//\\\//g')
+parsed_image=$(echo $TEST_IMAGE | sed 's/\//\\\//g')
 
+sed -i "s/REPLACE_URL/\"$parsed_url\"/g" template.yaml
+sed -i "s/REPLACE_PASSWORD/$PASSWORD/g" template.yaml
+sed -i "s/REPLACE_TIMESTAMP/\"$TIMESTAMP\"/g" template.yaml
+sed -i "s/REPLACE_IMAGE/\"$parsed_image\"/g" template.yaml
+
+# ----------- RUNNING TEST ----------- #
 echo "-- Running pods with tests."
 
 echo "Searching for already created jobs..."
@@ -126,17 +135,7 @@ if [[ ! -z $jobs ]]; then
   oc delete pods -l group=load-tests
 fi
 
-# set common variables
-cp pod.yaml template.yaml
-parsed_url=$(echo $URL | sed 's/\//\\\//g')
-parsed_image=$(echo $TEST_IMAGE | sed 's/\//\\\//g')
-
-sed -i "s/REPLACE_URL/\"$parsed_url\"/g" template.yaml
-sed -i "s/REPLACE_PASSWORD/$PASSWORD/g" template.yaml
-sed -i "s/REPLACE_TIMESTAMP/\"$TIMESTAMP\"/g" template.yaml
-sed -i "s/REPLACE_IMAGE/\"$parsed_image\"/g" template.yaml
-
-# set specific variables and create pods
+# set variables specific for each pod and create pods
 users_assigned=0
 while [ $users_assigned -lt $USER_COUNT ] 
 do
@@ -147,26 +146,38 @@ do
   oc create -f final.yaml
 done
 
-# wait for all pods to be Completed
-# known bug - if workspaces are not all in state running, test will never end. 
-# It can happend e.g. when there are low resources, so only test pods will be executed in serial maneur.
 echo "-- Waiting for all pods to be completed."
+
+#Initializing array to be sure every pod was executed. Can not use `all pods running` approach because of possible serialization.
+for (( i=0; i<$USER_COUNT; i++ )) do
+        running_pods[$i]=false
+done
+
+# waiting for all pods to be running
 someNotRunning=true
 while [ $someNotRunning == true ]
 do
+  i=0
   someNotRunning=false
   for p in $(oc get pods -l group=load-tests -o name)
   do
     status=$(oc get $p | awk '{print $3}' | tail -n 1)
-    if [[ $status != "Running" ]]; then
-      someNotRunning=true;
-      echo "Pods are not in state Running. Waiting for 10 seconds."
+    if [[ $status == "Running" ]]; then
+      running_pods[$i]=true;
+    fi
+    i=$(( i+1 ))
+  done
+  for (( j=0; j<$USER_COUNT; j++ )) do
+    if [ ${running_pods[$j]} == false ]; then
+      echo "Some pods are not in state running. Waiting for 10 seconds and retrying."
       sleep 10
-      break
+      someNotRunning=true
+      break;
     fi
   done
 done
 
+# waiting for all pods to be finished 
 echo "All pods are running, waiting for them to finish."
 starting=$(date +%s)
 someIsRunning=true
@@ -192,12 +203,9 @@ done
 echo "Pods ended with those statuses: $statuses"
 
 # ----------- GATHERING LOGS ----------- #
-
 echo "-- Gathering logs."
-# gather logs from PVC 
-#oc create -f report.yaml
-echo "Syncing files from PVC to local folder."
 
+echo "Syncing files from PVC to local folder."
 mkdir $FOLDER/$TIMESTAMP
 cd $FOLDER/$TIMESTAMP
 oc rsync --no-perms --include "user*/" ftp-server:/home/vsftpd/user/ $FOLDER/$TIMESTAMP
