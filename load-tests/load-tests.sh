@@ -11,7 +11,7 @@ function printHelp {
   GREEN="\\033[32;1m"
   NC="\\033[0m" # No Color
   
-  echo -e "${YELLOW}$(basename "$0") ${WHITE}[-u <username>] [-n <number-of-users>] [-p <passwd>] [-r <url>] [-f <folder>]" 
+  echo -e "${YELLOW}$(basename "$0") ${WHITE}[-u <username>] [-n <number-of-users>] [-p <passwd>] [-r <url>] [-f <folder>] [-t <workspace_starts>]" 
   echo -e "\n${NC}Script for running load tests against Che 7."
   echo -e "${GREEN}where:${WHITE}"
   echo -e "-u    username"
@@ -22,6 +22,7 @@ function printHelp {
   echo -e "-r    URL of Che"
   echo -e "-f    full path to folder ${NC} all reports will be saved in this folder"${WHITE}
   echo -e "-c    credential file ${NC} with usernames and passwords in *.csv format: \`user,pass\`"
+  echo -e "-t    count on how many times one user should run a workspace"
 }
 
 oc whoami 1>/dev/null
@@ -32,7 +33,7 @@ fi
 
 echo "You are logged in OC: $(oc whoami -c)"
 
-while getopts "hu:p:r:n:f:i:c:" opt; do 
+while getopts "hu:p:r:n:f:i:c:t:" opt; do 
   case $opt in
     h) printHelp
       exit 0
@@ -48,6 +49,8 @@ while getopts "hu:p:r:n:f:i:c:" opt; do
     p) export PASSWORD=$OPTARG
       ;;
     r) export URL=$OPTARG
+      ;;
+    t) export COMPLETITIONS_COUNT=$OPTARG
       ;;
     u) export USERNAME=$OPTARG
       ;;
@@ -88,7 +91,13 @@ else
   echo "Running load tests, result will be stored in $FOLDER in $TIMESTAMP subfolder."
 fi
 
+if [ -z $COMPLETITIONS_COUNT ]; then
+  echo "Parameter -t wasn't set, setting completitions count to 1."
+  COMPLETITIONS_COUNT=1
+fi
+
 # ----------- PREPARE ENVIRONMENT ----------- #
+echo "-- Preparing environment."
 # create pvc
 clean_pvc=false
 if ( exists pvc load-test-pvc ); then
@@ -134,8 +143,8 @@ cp pod.yaml template.yaml
 parsed_url=$(echo $URL | sed 's/\//\\\//g')
 parsed_image=$(echo $TEST_IMAGE | sed 's/\//\\\//g')
 
+sed -i "s/REPLACE_COMPLETITIONS/$COMPLETITIONS_COUNT/g" template.yaml
 sed -i "s/REPLACE_URL/\"$parsed_url\"/g" template.yaml
-sed -i "s/REPLACE_PASSWORD/$PASSWORD/g" template.yaml
 sed -i "s/REPLACE_TIMESTAMP/\"$TIMESTAMP\"/g" template.yaml
 sed -i "s/REPLACE_IMAGE/\"$parsed_image\"/g" template.yaml
 
@@ -159,6 +168,7 @@ if [ ! -z $USER_COUNT ]; then
     cp template.yaml final.yaml
     sed -i "s/REPLACE_NAME/load-test-$users_assigned/g" final.yaml
     sed -i "s/REPLACE_USERNAME/$USERNAME$users_assigned/g" final.yaml
+    sed -i "s/REPLACE_PASSWORD/$PASSWORD/g" final.yaml
     oc create -f final.yaml
   done
 fi
@@ -167,11 +177,10 @@ if [ ! -z $CRED_FILE ]; then
   while IFS=, read -r cred_file_username cred_file_pass
   do
     users_assigned=$((users_assigned+1))
-    echo "I got:$cred_file_username|$cred_file_pass"
     cp template.yaml final.yaml
     sed -i "s/REPLACE_NAME/load-test-$users_assigned/g" final.yaml
     sed -i "s/REPLACE_USERNAME/$cred_file_username/g" final.yaml
-    sed -i "s/REPLACE_PASSWORD/$cred_file_pass/g" template.yaml
+    sed -i "s/REPLACE_PASSWORD/$cred_file_pass/g" final.yaml
     oc create -f final.yaml
   done < $CRED_FILE
   IFS=$oldifs
@@ -179,51 +188,23 @@ fi
 
 echo "-- Waiting for all pods to be completed."
 
-#Initializing array to be sure every pod was executed. Can not use `all pods running` approach because of possible serialization.
-echo "$users_assigned users founds."
-for (( i=0; i<$users_assigned; i++ )) do
-        running_pods[$i]=false
-done
-
-# waiting for all pods to be running
-someNotRunning=true
-while [ $someNotRunning == true ]
+#waiting for jobs to be completed
+all_completed=false
+while [ $all_completed == false ] 
 do
-  i=0
-  someNotRunning=false
-  for p in $(oc get pods -l group=load-tests -o name)
+  sleep 20
+  all_completed=true
+  for job_name in $(oc get jobs -o name )
   do
-    status=$(oc get $p | awk '{print $3}' | tail -n 1)
-    if [[ $status == "Running" ]]; then
-      running_pods[$i]=true;
-    fi
-    i=$(( i+1 ))
-  done
-  for (( j=0; j<$users_assigned; j++ )) do
-    if [ ${running_pods[$j]} == false ]; then
-      echo "Some pods are not in state running. Waiting for 10 seconds and retrying."
-      sleep 10
-      someNotRunning=true
-      break;
+    if [ $(oc get $job_name -o json | jq .status.completionTime) == null ]; then
+      echo "Some jobs are still not completed. Waiting for 20 seconds."
+      all_completed=false
+      break
     fi
   done
 done
 
-# waiting for all pods to be finished 
-echo "All pods are running, waiting for them to finish."
-starting=$(date +%s)
-someIsRunning=true
-while [ $someIsRunning == true ]
-do
-  someIsRunning=false
-  statuses=$(oc get pods -l group=load-tests -o jsonpath="{.items[*].status.phase}")
-  if [[ $statuses == *"Running"* ]]; then
-    someIsRunning=true;
-    echo "Pods are still running. Waiting for 10 seconds."
-    sleep 10
-  fi
-done
-ending=$(date +%s)
+echo "All jobs are completed!"
 
 echo "All pods are finished!"
 statuses=""
@@ -274,4 +255,4 @@ oc delete pvc load-test-pvc
 
 
 # ----------- PROCESSING TEST RESULTS ----------- #
-$TEST_FOLDER/process-logs.sh $TIMESTAMP $FOLDER $USER_COUNT $USERNAME
+$TEST_FOLDER/process-logs.sh -t $TIMESTAMP -f $FOLDER -c $((users_assigned*COMPLETITIONS_COUNT))

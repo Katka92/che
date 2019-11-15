@@ -1,8 +1,24 @@
 # --- PROCESSING LOGS FROM LOAD_TESTS ---
-TIMESTAMP=$1
-FOLDER=$2
-USER_COUNT=$3
-USERNAME=$4
+
+while getopts "f:t:c:" opt; do 
+  case $opt in
+    f) export FOLDER=$OPTARG
+      ;;
+    t) export TIMESTAMP=$OPTARG
+      ;;
+    c) export TEST_COUNT=$OPTARG
+      ;;
+    \?) # invalid option
+      exit 1
+      ;;
+    :)
+      echo "Option \"$opt\" needs an argument."
+      exit 1
+      ;;
+  esac
+done
+
+CURRENT_DIR=$(pwd)
 
 echo "-- Generate sum-up for load tests."
 
@@ -14,28 +30,31 @@ touch $sumupFile
 failedUsers=""
 i=1
 failedCounter=0
-while [[ $i -le $USER_COUNT ]] 
-do
-  if [ -d $FOLDER/$TIMESTAMP/$USERNAME$i/report ]; then
-    failedUsers="$failedUsers $USERNAME$i"
+user_for_getting_test_names=""
+
+cd $FOLDER/$TIMESTAMP
+rm -rf "lost+found"
+for d in */ ; do
+  if [ -d ${d}report ]; then
+    failedUsers="$failedUsers ${d%"/"}"
     failedCounter=$((failedCounter + 1))
   else
     if [[ $user_for_getting_test_names == "" ]]; then
-      user_for_getting_test_names=$USERNAME$i
+      user_for_getting_test_names=${d%"/"}
     fi
   fi
-  i=$((i+1))
 done
+cd $CURRENT_DIR
 
 if [[ $failedUsers == "" ]]; then
-  echo "Tests passed for all users, yay!"
+  echo "All tests has passed, yay!"
   echo -e "Tests passed for all users, yay! \n" > $sumupFile
 else
-  echo "Test failed for $failedCounter/$USER_COUNT users: $failedUsers"
-  echo -e "Test failed for $failedCounter/$USER_COUNT users: $failedUsers \n" >> $sumupFile
+  echo "Test failed for $failedCounter/$TEST_COUNT users: $failedUsers"
+  echo -e "Test failed for $failedCounter/$TEST_COUNT users: $failedUsers \n" >> $sumupFile
 fi
 
-if [[ $failedCounter -eq $USER_COUNT ]]; then
+if [[ $user_for_getting_test_names == "" ]]; then
   echo "Tests failed for all users. Skipping generation logs."
   exit
 fi
@@ -44,11 +63,6 @@ fi
 for file in $(find $FOLDER/$TIMESTAMP -name 'load-test-results.txt'); do
   sed -i 's/\r/\n/g' $file
 done
-
-if [ -z $user_for_getting_test_names ]; then
-  echo "All users have failed test, not able to create final sum up."
-  exit
-fi
 
 lineCounter=1
 tests=$(wc -l < $FOLDER/$TIMESTAMP/$user_for_getting_test_names/load-test-folder/load-test-results.txt)
