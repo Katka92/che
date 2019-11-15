@@ -206,7 +206,6 @@ done
 
 echo "All jobs are completed!"
 
-echo "All pods are finished!"
 statuses=""
 for p in $(oc get pods -l group=load-tests -o name)
 do
