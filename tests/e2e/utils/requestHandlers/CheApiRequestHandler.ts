@@ -13,10 +13,12 @@ import { TestConstants } from '../../TestConstants';
 import { TYPES } from '../../inversify.types';
 import { inject, injectable } from 'inversify';
 import { IAuthorizationHeaderHandler } from './headers/IAuthorizationHeaderHandler';
+import { Agent } from 'https';
 
 @injectable()
 export class CheApiRequestHandler {
     constructor(@inject(TYPES.IAuthorizationHeaderHandler) private readonly headerHandler: IAuthorizationHeaderHandler) { }
+    agent = new Agent({ rejectUnauthorized: false });
 
     async get(relativeUrl: string): Promise<AxiosResponse> {
         return await axios.get(this.assembleUrl(relativeUrl), await this.headerHandler.get());

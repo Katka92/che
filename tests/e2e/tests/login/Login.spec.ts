@@ -8,15 +8,20 @@
  * SPDX-License-Identifier: EPL-2.0
  **********************************************************************/
 
-import { TestConstants, DriverHelper, CLASSES, ICheLoginPage, TYPES } from '../..';
+import { CLASSES } from '../..';
 import { e2eContainer } from '../../inversify.config';
+import { PreferencesHandler } from '../../utils/PreferencesHandler';
 
-const driverHelper: DriverHelper = e2eContainer.get(CLASSES.DriverHelper);
-const loginPage: ICheLoginPage = e2eContainer.get<ICheLoginPage>(TYPES.CheLogin);
+// const driverHelper: DriverHelper = e2eContainer.get(CLASSES.DriverHelper);
+// const loginPage: ICheLoginPage = e2eContainer.get<ICheLoginPage>(TYPES.CheLogin);
+const pref : PreferencesHandler = e2eContainer.get(CLASSES.PreferencesHandler);
 
 suite('Login test', async () => {
     test('Login', async () => {
-        await driverHelper.navigateToUrl(TestConstants.TS_SELENIUM_BASE_URL);
-        await loginPage.login();
+        pref.setConfirmExit(false);
+        pref.setTerminalType('blabla');
+
+        // await driverHelper.navigateToUrl(TestConstants.TS_SELENIUM_BASE_URL);
+        // await loginPage.login();
     });
 });
