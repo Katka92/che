@@ -1,0 +1,8 @@
+--timeout 2200000
+--reporter 'dist/driver/CheReporter.js'
+-u tdd 
+--bail
+--full-trace
+--spec dist/tests/locators/Login.spec
+--spec dist/tests/locators/locator_test.spec
+--require source-map-support/register

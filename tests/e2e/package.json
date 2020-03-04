@@ -16,6 +16,7 @@
     "test-java-vertx": "./generateIndex.sh && npm run lint && npm run tsc && mocha --opts mocha-java-vertx.opts",
     "test-git-ssh": "./generateIndex.sh &&  npm run lint && npm run tsc && mocha --opts mocha-git-ssh.opts",
     "test-all-devfiles": "./generateIndex.sh && npm run lint && npm run tsc && mocha --opts mocha-all-devfiles.opts",
+    "test-locators": "npm run lint && npm run tsc && mocha --opts mocha-locators.opts",
     "lint": "tslint --fix -p .",
     "tsc": "tsc -p ."
   },
@@ -36,11 +37,12 @@
     "ts-node": "^8.0.3",
     "tslint": "5.10.0",
     "typed-rest-client": "^1.2.0",
-    "typescript": "^3.4.3"
+    "typescript": "^3.7.0"
   },
   "dependencies": {
     "@eclipse-che/api": "^7.5.0-SNAPSHOT",
     "inversify": "^5.0.1",
-    "reflect-metadata": "^0.1.13"
+    "reflect-metadata": "^0.1.13",
+    "monaco-page-objects": "0.0.1"
   }
 }

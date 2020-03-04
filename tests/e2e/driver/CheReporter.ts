@@ -19,6 +19,7 @@ import { DriverHelper } from '../utils/DriverHelper';
 import { ScreenCatcher } from '../utils/ScreenCatcher';
 import { ITestWorkspaceUtil } from '../utils/workspace/ITestWorkspaceUtil';
 import { PreferencesHandler, AskForConfirmationType } from '../utils/PreferencesHandler';
+import { setup } from 'monaco-page-objects';
 
 const e2eContainer = inversifyConfig.e2eContainer;
 const driver: IDriver = e2eContainer.get(TYPES.Driver);
@@ -68,6 +69,7 @@ class CheReporter extends mocha.reporters.Spec {
 
       rm.sync(TestConstants.TS_SELENIUM_REPORT_FOLDER);
       preferencesHalder.setConfirmExit(AskForConfirmationType.never);
+      setup('1.0.0', '1.0.0', __dirname + '../../locators', await driver.get());
     });
 
     runner.on('test', async function (test: mocha.Test) {
