@@ -46,7 +46,7 @@ done
 
 
 # check that all variables are set
-if [ -z $USERNAME ] || [ -z $STARTING_INDEX ] || [ -z $USER_COUNT ] || [ -z $PASSWORD ] || [ -z $TESTED_ENV]; then
+if [ -z $USERNAME ] || [ -z $STARTING_INDEX ] || [ -z $USER_COUNT ] || [ -z $PASSWORD ] || [ -z $TESTED_ENV ]; then
   echo "ERROR: All variables must be set. See the text below to learn how to use this script:"
   printHelp
   exit 1
