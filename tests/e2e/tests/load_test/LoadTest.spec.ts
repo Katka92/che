@@ -34,7 +34,8 @@ suite('Load test suite', async () => {
 
     test('Wait loading workspace and get time', async () => {
         console.log('Waiting for workspace to start.');
-        await ide.waitAndSwitchToIdeFrame();
+        // await ide.waitAndSwitchToIdeFrame();
+        await ide.waitWorkspaceAndIde('bla', 'blabla');
         console.log('Waiting for project to be imported and opened.');
         await projectTree.openProjectTreeContainer();
     });

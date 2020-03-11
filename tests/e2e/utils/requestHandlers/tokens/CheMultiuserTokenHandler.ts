@@ -18,15 +18,26 @@ export class CheMultiuserTokenHandler implements ITokenHandler {
     async get(): Promise<string> {
         let params = {};
 
+        // let keycloakUrl = this.handleTrailingSlash(TestConstants.TS_SELENIUM_BASE_URL);
+        // const keycloakAuthSuffix = 'auth/realms/che/protocol/openid-connect/token';
+        // keycloakUrl = keycloakUrl.replace('che', 'keycloak') + keycloakAuthSuffix;
+        // params = {
+        //     client_id: 'che-public',
+        //     username: TestConstants.TS_SELENIUM_USERNAME,
+        //     password: TestConstants.TS_SELENIUM_PASSWORD,
+        //     grant_type: 'password'
+        // };
+        // cRW setting
         let keycloakUrl = this.handleTrailingSlash(TestConstants.TS_SELENIUM_BASE_URL);
-        const keycloakAuthSuffix = 'auth/realms/che/protocol/openid-connect/token';
-        keycloakUrl = keycloakUrl.replace('che', 'keycloak') + keycloakAuthSuffix;
+        const keycloakAuthSuffix = 'auth/realms/codeready/protocol/openid-connect/token';
+        keycloakUrl = keycloakUrl.replace('codeready', 'keycloak') + keycloakAuthSuffix;
         params = {
-            client_id: 'che-public',
+            client_id: 'codeready-public',
             username: TestConstants.TS_SELENIUM_USERNAME,
             password: TestConstants.TS_SELENIUM_PASSWORD,
             grant_type: 'password'
         };
+
 
         try {
             const responseToObtainBearerToken = await axios.post(keycloakUrl, querystring.stringify(params));
