@@ -149,10 +149,6 @@ suite('Validation of workspace build and run', async () => {
 
     test('Build application', async () => {
         await topMenu.runTask('build-file-output');
-
-        // workaround for issue: https://github.com/eclipse/che/issues/14771
-
-        // await projectTree.expandPathAndOpenFileInAssociatedWorkspace(projectName, 'build-output.txt');
         await projectTree.expandPathAndOpenFile(projectName, 'result-build-output.txt', 220000);
         await editor.waitText('result-build-output.txt', '[INFO] BUILD SUCCESS');
         // await editor.followAndWaitForText('build-output.txt', '[INFO] BUILD SUCCESS', 300000, 10000);
@@ -201,18 +197,8 @@ suite('Display source code changes in the running application', async () => {
     test('Build application with changes', async () => {
         await topMenu.runTask('build');
         await projectTree.collapseProjectTree(projectName + '/src', 'main');
-        await projectTree.expandPathAndOpenFile(projectName, 'result-build.txt', 300000);
+        await projectTree.expandPathAndOpenFile(projectName, 'result-build.txt', 220000);
         await editor.waitText('result-build.txt', '[INFO] BUILD SUCCESS');
-
-        // workaround for issue: https://github.com/eclipse/che/issues/14771
-
-        /*await projectTree.expandPathAndOpenFileInAssociatedWorkspace(projectName, 'build.txt');
-        await editor.waitEditorAvailable('build.txt');
-        await editor.clickOnTab('build.txt');
-        await editor.waitTabFocused('build.txt');
-        await editor.followAndWaitForText('build.txt', '[INFO] BUILD SUCCESS', 300000, 5000);*/
-
-
     });
 
     test('Run application with changes', async () => {
@@ -288,14 +274,14 @@ async function checkErrorMessageInApplicationController() {
     await previewWidget.waitAndClick(SpringAppLocators.springErrorButtonLocator);
 
     try {
-        await previewWidget.waitVisibility(SpringAppLocators.springErrorMessageLocator);
+        await previewWidget.waitVisibility(SpringAppLocators.springErrorMessageLocator, 15_000);
     } catch (err) {
 
         await driverHelper.getDriver().switchTo().defaultContent();
         await ide.waitAndSwitchToIdeFrame();
 
         await previewWidget.waitAndSwitchToWidgetFrame();
-        await previewWidget.waitVisibility(SpringAppLocators.springErrorMessageLocator);
+        await previewWidget.waitVisibility(SpringAppLocators.springErrorMessageLocator, 15_000);
     }
 
 

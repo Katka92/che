@@ -15,6 +15,7 @@ import 'reflect-metadata';
 import { ThenableWebDriver, By, until, WebElement } from 'selenium-webdriver';
 import { TestConstants } from '../TestConstants';
 import { Logger } from './Logger';
+import { TimeoutConstants } from '../TimeoutConstants';
 
 
 @injectable()
@@ -87,7 +88,7 @@ export class DriverHelper {
         return false;
     }
 
-    public async waitVisibility(elementLocator: By, timeout: number = TestConstants.TS_SELENIUM_DEFAULT_TIMEOUT): Promise<WebElement> {
+    public async waitVisibility(elementLocator: By, timeout: number): Promise<WebElement> {
         const attempts: number = TestConstants.TS_SELENIUM_DEFAULT_ATTEMPTS;
         const polling: number = TestConstants.TS_SELENIUM_DEFAULT_POLLING;
 
@@ -114,7 +115,7 @@ export class DriverHelper {
         throw new error.TimeoutError(`Exceeded maximum visibility checkings attempts, problems with 'StaleElementReferenceError' of '${elementLocator}' element`);
     }
 
-    public async waitPresence(elementLocator: By, timeout: number = TestConstants.TS_SELENIUM_DEFAULT_TIMEOUT): Promise<WebElement> {
+    public async waitPresence(elementLocator: By, timeout: number) : Promise<WebElement> {
         const attempts: number = TestConstants.TS_SELENIUM_DEFAULT_ATTEMPTS;
         const polling: number = TestConstants.TS_SELENIUM_DEFAULT_POLLING;
 
@@ -137,7 +138,7 @@ export class DriverHelper {
         throw new error.TimeoutError(`Exceeded maximum presence checkings attempts, problems with 'StaleElementReferenceError' of '${elementLocator}' element`);
     }
 
-    public async waitAllPresence(elementLocator: By, timeout: number = TestConstants.TS_SELENIUM_DEFAULT_TIMEOUT): Promise<Array<WebElement>> {
+    public async waitAllPresence(elementLocator: By, timeout: number): Promise<Array<WebElement>> {
         const attempts: number = TestConstants.TS_SELENIUM_DEFAULT_ATTEMPTS;
         const polling: number = TestConstants.TS_SELENIUM_DEFAULT_POLLING;
 
@@ -160,7 +161,7 @@ export class DriverHelper {
         throw new error.TimeoutError(`Exceeded maximum presence checkings attempts, problems with 'StaleElementReferenceError' of '${elementLocator}' element`);
     }
 
-    public async waitAllVisibility(locators: Array<By>, timeout: number = TestConstants.TS_SELENIUM_DEFAULT_TIMEOUT) {
+    public async waitAllVisibility(locators: Array<By>, timeout: number) {
         Logger.trace(`DriverHelper.waitAllVisibility ${locators}`);
 
         for (const elementLocator of locators) {
@@ -181,7 +182,7 @@ export class DriverHelper {
         }
     }
 
-    public async waitDisappearanceWithTimeout(elementLocator: By, timeout: number = TestConstants.TS_SELENIUM_DEFAULT_TIMEOUT) {
+    public async waitDisappearanceWithTimeout(elementLocator: By, timeout: number) {
         Logger.trace(`DriverHelper.waitDisappearanceWithTimeout ${elementLocator}`);
 
         await this.getDriver().wait(async () => {
@@ -204,7 +205,7 @@ export class DriverHelper {
         }
     }
 
-    public async waitAndClick(elementLocator: By, timeout: number = TestConstants.TS_SELENIUM_DEFAULT_TIMEOUT) {
+    public async waitAndClick(elementLocator: By, timeout: number) {
         const attempts: number = TestConstants.TS_SELENIUM_DEFAULT_ATTEMPTS;
         const polling: number = TestConstants.TS_SELENIUM_DEFAULT_POLLING;
 
@@ -239,7 +240,7 @@ export class DriverHelper {
 
     public async waitAndGetElementAttribute(elementLocator: By,
         attribute: string,
-        visibilityTimeout: number = TestConstants.TS_SELENIUM_DEFAULT_TIMEOUT): Promise<string> {
+        visibilityTimeout: number): Promise<string> {
 
         const attempts: number = TestConstants.TS_SELENIUM_DEFAULT_ATTEMPTS;
         const polling: number = TestConstants.TS_SELENIUM_DEFAULT_POLLING;
@@ -267,7 +268,7 @@ export class DriverHelper {
 
     public async waitAndGetCssValue(elementLocator: By,
         cssAttribute: string,
-        visibilityTimeout: number = TestConstants.TS_SELENIUM_DEFAULT_TIMEOUT): Promise<string> {
+        visibilityTimeout: number): Promise<string> {
 
         const attempts: number = TestConstants.TS_SELENIUM_DEFAULT_ATTEMPTS;
         const polling: number = TestConstants.TS_SELENIUM_DEFAULT_POLLING;
@@ -296,7 +297,7 @@ export class DriverHelper {
     public async waitAttributeValue(elementLocator: By,
         attribute: string,
         expectedValue: string,
-        timeout: number = TestConstants.TS_SELENIUM_DEFAULT_TIMEOUT) {
+        timeout: number) {
 
         Logger.trace(`DriverHelper.waitAttributeValue ${elementLocator}`);
 
@@ -309,7 +310,7 @@ export class DriverHelper {
             `The '${attribute}' attribute value doesn't match with expected value '${expectedValue}'`);
     }
 
-    public async type(elementLocator: By, text: string, timeout: number = TestConstants.TS_SELENIUM_DEFAULT_TIMEOUT) {
+    public async type(elementLocator: By, text: string, timeout: number) {
         const attempts: number = TestConstants.TS_SELENIUM_DEFAULT_ATTEMPTS;
         const polling: number = TestConstants.TS_SELENIUM_DEFAULT_POLLING;
 
@@ -334,14 +335,14 @@ export class DriverHelper {
         throw new error.TimeoutError(`Exceeded maximum typing attempts, to the '${elementLocator}' element`);
     }
 
-    public async typeToInvisible(elementLocator: By, text: string, timeout: number = TestConstants.TS_SELENIUM_DEFAULT_TIMEOUT) {
+    public async typeToInvisible(elementLocator: By, text: string) {
         const attempts: number = TestConstants.TS_SELENIUM_DEFAULT_ATTEMPTS;
         const polling: number = TestConstants.TS_SELENIUM_DEFAULT_POLLING;
 
         Logger.trace(`DriverHelper.typeToInvisible ${elementLocator} text: ${text}`);
 
         for (let i = 0; i < attempts; i++) {
-            const element: WebElement = await this.waitPresence(elementLocator, timeout);
+            const element: WebElement = await this.waitPresence(elementLocator, TimeoutConstants.TS_SELENIUM_CLICK_ON_VISIBLE_ITEM);
 
             try {
                 await element.sendKeys(text);
@@ -359,14 +360,14 @@ export class DriverHelper {
         throw new error.TimeoutError(`Exceeded maximum typing attempts, to the '${elementLocator}' element`);
     }
 
-    public async clear(elementLocator: By, timeout: number = TestConstants.TS_SELENIUM_DEFAULT_TIMEOUT) {
+    public async clear(elementLocator: By) {
         const attempts: number = TestConstants.TS_SELENIUM_DEFAULT_ATTEMPTS;
         const polling: number = TestConstants.TS_SELENIUM_DEFAULT_POLLING;
 
         Logger.trace(`DriverHelper.clear ${elementLocator}`);
 
         for (let i = 0; i < attempts; i++) {
-            const element: WebElement = await this.waitVisibility(elementLocator, timeout);
+            const element: WebElement = await this.waitVisibility(elementLocator, TimeoutConstants.TS_SELENIUM_CLICK_ON_VISIBLE_ITEM);
 
             try {
                 await element.clear();
@@ -384,48 +385,23 @@ export class DriverHelper {
         throw new error.TimeoutError(`Exceeded maximum clearing attempts, to the '${elementLocator}' element`);
     }
 
-    public async clearInvisible(elementLocator: By, timeout: number = TestConstants.TS_SELENIUM_DEFAULT_TIMEOUT) {
-        const attempts: number = TestConstants.TS_SELENIUM_DEFAULT_ATTEMPTS;
-        const polling: number = TestConstants.TS_SELENIUM_DEFAULT_POLLING;
-
-        Logger.trace(`DriverHelper.clearInvisible ${elementLocator}`);
-
-        for (let i = 0; i < attempts; i++) {
-            const element: WebElement = await this.waitPresence(elementLocator, timeout);
-
-            try {
-                await element.clear();
-                return;
-            } catch (err) {
-                if (err instanceof error.StaleElementReferenceError) {
-                    await this.wait(polling);
-                    continue;
-                }
-
-                throw err;
-            }
-        }
-
-        throw new error.TimeoutError(`Exceeded maximum clearing attempts, to the '${elementLocator}' element`);
-    }
-
-    public async enterValue(elementLocator: By, text: string, timeout: number = TestConstants.TS_SELENIUM_DEFAULT_TIMEOUT) {
+    public async enterValue(elementLocator: By, text: string, timeout: number = TimeoutConstants.TS_SELENIUM_CLICK_ON_VISIBLE_ITEM) {
         Logger.trace(`DriverHelper.enterValue ${elementLocator} text: ${text}`);
 
         await this.waitVisibility(elementLocator, timeout);
-        await this.clear(elementLocator, timeout);
+        await this.clear(elementLocator);
         await this.waitAttributeValue(elementLocator, 'value', '', timeout);
         await this.type(elementLocator, text, timeout);
         await this.waitAttributeValue(elementLocator, 'value', text, timeout);
     }
 
-    public async waitAndSwitchToFrame(iframeLocator: By, timeout: number = TestConstants.TS_SELENIUM_DEFAULT_TIMEOUT) {
+    public async waitAndSwitchToFrame(iframeLocator: By, timeout: number) {
         Logger.trace(`DriverHelper.waitAndSwitchToFrame ${iframeLocator}`);
 
         await this.driver.wait(until.ableToSwitchToFrame(iframeLocator), timeout);
     }
 
-    public async waitAndGetText(elementLocator: By, timeout: number = TestConstants.TS_SELENIUM_DEFAULT_TIMEOUT): Promise<string> {
+    public async waitAndGetText(elementLocator: By, timeout: number): Promise<string> {
         const attempts: number = TestConstants.TS_SELENIUM_DEFAULT_ATTEMPTS;
         const polling: number = TestConstants.TS_SELENIUM_DEFAULT_POLLING;
 
@@ -450,14 +426,14 @@ export class DriverHelper {
         throw new error.TimeoutError(`Exceeded maximum text obtaining attempts, from the '${elementLocator}' element`);
     }
 
-    public async waitAndGetValue(elementLocator: By, timeout: number = TestConstants.TS_SELENIUM_DEFAULT_TIMEOUT): Promise<string> {
+    public async waitAndGetValue(elementLocator: By, timeout: number): Promise<string> {
         Logger.trace(`DriverHelper.waitAndGetValue ${elementLocator}`);
 
         const elementValue: string = await this.waitAndGetElementAttribute(elementLocator, 'value', timeout);
         return elementValue;
     }
 
-    public async waitUntilTrue(callback: any, timeout: number = TestConstants.TS_SELENIUM_DEFAULT_TIMEOUT) {
+    public async waitUntilTrue(callback: any, timeout: number) {
         Logger.trace('DriverHelper.waitUntilTrue');
 
         await this.driver.wait(callback, timeout);
@@ -469,11 +445,11 @@ export class DriverHelper {
         await this.driver.navigate().refresh();
     }
 
-    public async navigateAndWaitToUrl(url: string) {
+    public async navigateAndWaitToUrl(url: string, timeout: number = TimeoutConstants.TS_SELENIUM_WAIT_FOR_URL) {
         Logger.trace(`DriverHelper.navigateAndWaitToUrl ${url}`);
 
         await this.navigateToUrl(url);
-        await this.waitURL(url);
+        await this.waitURL(url, timeout);
     }
 
     public async navigateToUrl(url: string) {
@@ -482,7 +458,7 @@ export class DriverHelper {
         await this.driver.navigate().to(url);
     }
 
-    public async waitURL(expectedUrl: string, timeout: number = TestConstants.TS_SELENIUM_DEFAULT_TIMEOUT) {
+    public async waitURL(expectedUrl: string, timeout: number) {
         Logger.trace(`DriverHelper.waitURL ${expectedUrl}`);
 
         await this.getDriver().wait(async () => {
@@ -495,14 +471,14 @@ export class DriverHelper {
         });
     }
 
-    public async scrollTo(elementLocator: By, timeout: number = TestConstants.TS_SELENIUM_DEFAULT_TIMEOUT) {
+    public async scrollTo(elementLocator: By) {
         const attempts: number = TestConstants.TS_SELENIUM_DEFAULT_ATTEMPTS;
         const polling: number = TestConstants.TS_SELENIUM_DEFAULT_POLLING;
 
         Logger.trace(`DriverHelper.scrollTo ${elementLocator}`);
 
         for (let i = 0; i < attempts; i++) {
-            const element: WebElement = await this.waitPresence(elementLocator, timeout);
+            const element: WebElement = await this.waitPresence(elementLocator, TimeoutConstants.TS_SELENIUM_CLICK_ON_VISIBLE_ITEM);
 
             try {
                 await this.getAction().mouseMove(element).perform();
@@ -529,25 +505,4 @@ export class DriverHelper {
 
         return this.driver;
     }
-
-    async waitOpenningSecondWindow(timeout: number = TestConstants.TS_SELENIUM_DEFAULT_TIMEOUT) {
-        Logger.trace('DriverHelper.waitOpenningSecondWindow');
-
-        await this.driver.wait(async () => {
-            const handles: string[] = await this.driver.getAllWindowHandles();
-            if (handles.length > 1) {
-                return true;
-            }
-        }, timeout);
-    }
-
-    async switchToSecondWindow(mainWindowHandle: string) {
-        Logger.debug('DriverHelper.switchToSecondWindow');
-
-        await this.waitOpenningSecondWindow();
-        const handles: string[] = await this.driver.getAllWindowHandles();
-        handles.splice(handles.indexOf(mainWindowHandle), 1);
-        await this.driver.switchTo().window(handles[0]);
-    }
-
 }
