@@ -185,5 +185,6 @@ export const TimeoutConstants = {
     /**
      * Timeout for Che cluster title visibility in OcpWebConsolePage, "10 000" by default.
      */
-    TS_SELENIUM_RESOURCES_CHE_CLUSTER_TITLE_TIMEOUT: Number(process.env.TS_SELENIUM_RESOURCES_CHE_CLUSTER_TITLE_TIMEOUT) || 10_000
+    TS_SELENIUM_RESOURCES_CHE_CLUSTER_TITLE_TIMEOUT: Number(process.env.TS_SELENIUM_RESOURCES_CHE_CLUSTER_TITLE_TIMEOUT) || 10_000,
+
 };

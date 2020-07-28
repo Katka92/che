@@ -27,7 +27,7 @@ suite(`${stack} test`, async () => {
         workspaceHandling.createAndOpenWorkspace(stack);
         projectAndFileTests.waitWorkspaceReadiness(workspaceSampleName, workspaceRootFolderName);
     });
-    
+
     suite('Test opening file', async () => {
         // opening file that soon should give time for LS to initialize
         projectAndFileTests.openFile(fileFolderPath, tabTitle);
@@ -37,7 +37,7 @@ suite(`${stack} test`, async () => {
         codeExecutionTests.runTask(buildTaskName, 120_000);
         codeExecutionTests.closeTerminal(buildTaskName);
     });
-    
+
     suite('Language server validation', async () => {
         commonLsTests.errorHighlighting(tabTitle, 'errorneous_text', 20);
         commonLsTests.suggestionInvoking(tabTitle, 19, 31, 'router(Vertx vertx) : Router');
