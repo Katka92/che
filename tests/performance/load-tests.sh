@@ -135,11 +135,13 @@ if [[ $clean_pvc == true ]]; then
   do
     status=$(oc get pod ftp-server | awk '{print $3}' | tail -n 1)
     if [[ $status == "Running" ]]; then
-      oc exec ftp-server -it -- rm -rf /home/vsftpd/user/*
+      oc exec ftp-server -- rm -rf /home/vsftpd/user/*
       break
     fi
   done
 fi
+
+oc exec ftp-server -- cat /etc/vsftpd/vsftpd.conf
 
 # set common variables to template.yaml
 echo "set common variables to template.yaml"
@@ -227,6 +229,9 @@ mkdir $FOLDER/$TIMESTAMP
 cd $FOLDER/$TIMESTAMP
 oc rsync --no-perms ftp-server:/home/vsftpd/user/ $FOLDER/$TIMESTAMP
 echo "Tar files rsynced, untarring..."
+echo "List of files present"
+ls
+
 for filename in *.tar; do 
   tar xf $filename; 
 done
