@@ -141,7 +141,12 @@ if [[ $clean_pvc == true ]]; then
   done
 fi
 
-oc exec ftp-server -- cat /etc/vsftpd/vsftpd.conf
+sleep 10
+
+#setup and run vsftpd in ftp-server pod
+oc exec ftp-server -- sed -i 's/connect_from_port_20/#connect_from_port_20/' /etc/vsftpd/vsftpd.conf
+oc exec ftp-server -- sed -i 's/ftp_data_port/#ftp_data_port/' /etc/vsftpd/vsftpd.conf
+oc exec ftp-server -- sh /usr/sbin/run-vsftpd.sh &
 
 # set common variables to template.yaml
 echo "set common variables to template.yaml"

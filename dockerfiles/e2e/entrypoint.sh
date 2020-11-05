@@ -86,9 +86,10 @@ if [ $TEST_SUITE == "load-test" ]; then
   echo "Tarring files and sending them via FTP..."
   tar -cf $user_folder.tar ./$user_folder
 
-  ftp -n load-tests-ftp-service << End_script 
+  ftp -vn load-tests-ftp-service << End_script 
   user user pass1234
   binary
+  passive
   put $user_folder.tar
   quit
 End_script

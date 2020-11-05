@@ -23,6 +23,12 @@ spec:
       value: "YES"
     - name: PORT_PROMISCUOUS
       value: "YES"
+    - name: PASV_MIN_PORT
+      value: "21000"
+    - name: PASV_MAX_PORT
+      value: "22000"
+    command: ["sleep"]
+    args: ["100000"]
     volumeMounts:
       - mountPath: /home/vsftpd/user
         name: pv-storage
