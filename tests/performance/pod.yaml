@@ -35,6 +35,20 @@ spec:
           value: "REPLACE_LOG_LEVEL"
         - name: NODE_TLS_REJECT_UNAUTHORIZED
           value: "0"
+        - name: TS_SELENIUM_VALUE_OPENSHIFT_OAUTH
+          value: "true"
+        - name: TS_OCP_LOGIN_PAGE_PROVIDER_TITLE
+          value: "crw-qe-htpasswd-provider"
+        - name: TS_SELENIUM_OCP_USERNAME
+          value: REPLACE_USERNAME
+        - name: TS_SELENIUM_OCP_PASSWORD
+          value: REPLACE_PASSWORD
+        - name: E2E_OCP_CLUSTER_VERSION
+          value: "4.x"
+        - name: TS_SELENIUM_VALUE_TLS_SUPPORT
+          value: "true"
+        - name: TS_SELENIUM_W3C_CHROME_OPTION
+          value: "true"
         - name: VIDEO_RECORDING
           value: "false"
         image: REPLACE_IMAGE 
