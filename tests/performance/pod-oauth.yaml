@@ -65,6 +65,8 @@ spec:
           value: "500000"
         - name: TS_LOAD_TESTS
           value: "true"
+        - name: DELETE_WORKSPACE_ON_FAILED_TEST
+          value: "true"
         image: REPLACE_IMAGE 
         imagePullPolicy: Always
         name: load-testing-container
@@ -74,5 +76,5 @@ spec:
             cpu: "250m"
           limits:
             memory: MEMORY_LIMIT
-            cpu: "700m"
+            cpu: "750m"
       restartPolicy: Never    
