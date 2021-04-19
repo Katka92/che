@@ -144,7 +144,7 @@ echo "wait for ftp server to be running"
 status=$(oc get pod ftp-server | awk '{print $3}' | tail -n 1)
 while [[ $status != "Running" ]]
 do
-  echo "ftp-server is not running, sleep 1 sec and re-check"
+  echo "ftp-server is not running, sleep 5 sec and re-check"
   sleep 5
   status=$(oc get pod ftp-server | awk '{print $3}' | tail -n 1)
 done
@@ -185,8 +185,8 @@ if [ $TEST_SUITE == "load-test" ]; then
 else 
   sed -i_.bak '/TEST_SUITE/d' template.yaml
   sed -i "s/REPLACE_USERSTORY/$TEST_SUITE/g" template.yaml
-  sed -i "s/MEMORY_REQUEST/\"1Gi\"/g" template.yaml
-  sed -i "s/MEMORY_LIMIT/\"1Gi\"/g" template.yaml
+  sed -i "s/MEMORY_REQUEST/\"1.1Gi\"/g" template.yaml
+  sed -i "s/MEMORY_LIMIT/\"1.1Gi\"/g" template.yaml
 fi
 
 # ----------- RUNNING TEST ----------- #
