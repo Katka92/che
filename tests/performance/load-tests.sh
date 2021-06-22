@@ -185,9 +185,11 @@ if [ $TEST_SUITE == "load-test" ]; then
 else 
   sed -i_.bak '/TEST_SUITE/d' template.yaml
   sed -i "s/REPLACE_USERSTORY/$TEST_SUITE/g" template.yaml
-  sed -i "s/MEMORY_REQUEST/\"1.1Gi\"/g" template.yaml
-  sed -i "s/MEMORY_LIMIT/\"1.1Gi\"/g" template.yaml
+  sed -i "s/MEMORY_REQUEST/\"1300Mi\"/g" template.yaml
+  sed -i "s/MEMORY_LIMIT/\"1300Mi\"/g" template.yaml
 fi
+
+cat template.yaml
 
 # ----------- RUNNING TEST ----------- #
 echo "-- Running pods with tests."
@@ -215,6 +217,7 @@ if [ ! -z $USER_COUNT ]; then
     oc_token=$(oc whoami -t)
     sed -i "s/REPLACE_TOKEN/$oc_token/g" final.yaml
     oc config use-context $executor_context
+    cat final.yaml
     oc create -f final.yaml
   done
 fi
