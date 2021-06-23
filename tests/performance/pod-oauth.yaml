@@ -4,7 +4,7 @@ metadata:
   labels:
     group: load-tests
   name: REPLACE_NAME
-spec:
+spec:  
   completions: REPLACE_COMPLETITIONS
   backoffLimit: 0
   template:
@@ -13,6 +13,10 @@ spec:
       labels:
         group: load-tests
     spec:
+      volumes:
+        - name: dshm
+          emptyDir:
+            medium: Memory
       containers:
       - env:                                 
         - name: TS_SELENIUM_BASE_URL
@@ -28,7 +32,7 @@ spec:
         - name: TS_SELENIUM_LOAD_PAGE_TIMEOUT
           value: "180000"
         - name: TS_SELENIUM_START_WORKSPACE_TIMEOUT
-          value: "180000"
+          value: "300000"
         - name: TS_SELENIUM_LOG_LEVEL
           value: "REPLACE_LOG_LEVEL"
         - name: TS_IDE_LOAD_TIMEOUT
@@ -70,6 +74,9 @@ spec:
         image: REPLACE_IMAGE 
         imagePullPolicy: Always
         name: load-testing-container
+        volumeMounts:
+          - name: dshm
+            mountPath: /dev/shm
         resources:
           requests:
             memory: MEMORY_REQUEST
